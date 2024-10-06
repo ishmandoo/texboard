@@ -1,96 +1,72 @@
-//document.cookie = "hist=";
+let hist = [];
 
-hist = []
-
-
-function getCookie(cookiename) {
-  // Get name followed by anything except a semicolon
-  var cookiestring=RegExp(""+cookiename+"[^;]+").exec(document.cookie);
-  // Return everything after the equal sign, or an empty string if the cookie name not found
-  return decodeURIComponent(!!cookiestring ? cookiestring.toString().replace(/^[^=]+./,"") : "");
-}
 
 function saveHist() {
-  document.cookie = "hist=" + encodeURIComponent(JSON.stringify(hist));
-
+	localStorage.setItem("hist", JSON.stringify(hist));
 }
 
-document.addEventListener('DOMContentLoaded', function() {
- 	cookie = getCookie('hist')
- 	console.log(cookie)
- 	if (cookie != "") {
- 		hist = JSON.parse(cookie)
- 		update()
- 	}
-	//console.log(hist)
+function getHist() {
+	const storedHist = localStorage.getItem("hist");
+	return storedHist ? JSON.parse(storedHist) : [];
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+	hist = getHist();
+	update();
 });
 
 document.addEventListener('keyup', (event) => {
-  const keyName = event.key;
-
-  // As the user release the Ctrl key, the key is no longer active.
-  // So event.ctrlKey is false.
-  if (keyName === 'Enter') {
-  	submit();
-  }
+	if (event.key === 'Enter') {
+		submit();
+	}
 }, false);
 
-
-// The handler also must go in a .js file
 function submit() {
-  	var latex = document.getElementById('latex')
-	hist.push(latex.value)
-  	latex.value = "";
-
-  	update()
-
+	const latex = document.getElementById('latex');
+	hist.push(latex.value);
+	latex.value = "";
+	update();
 }
 
 function update() {
-	var imgs = document.getElementById("imgs");
+	const imgs = document.getElementById("imgs");
 	imgs.innerHTML = "";
 
-	hist.forEach(function (data, i){
-		var imgGrp = document.createElement('div');
+	hist.forEach(function (data, i) {
+		const imgGrp = document.createElement('div');
 		imgGrp.classList.add("imgGrp");
+		imgs.appendChild(imgGrp);
 
-  		imgs.appendChild(imgGrp);
+		const mathElement = document.createElement('div');
+		mathElement.classList.add('math');
+		// Wrap the LaTeX content in inline math delimiters
+		mathElement.innerText = `\\(${data}\\)`;
+		imgGrp.appendChild(mathElement);
 
-		var img = new Image();
-		img.src = "https://latex.codecogs.com/png.latex?%5Chuge%20" + data;
-		imgGrp.addEventListener('click', function(){
-			latex.value = data
+		imgGrp.addEventListener('click', function () {
+			console.log(data)
+			document.getElementById('latex').value = data;
 		});
 
-		var del = document.createElement("i");
-		del.classList.add('fa-times');
-		del.classList.add('fa');
-		del.classList.add('del');
+		const del = document.createElement("i");
+		del.classList.add('fa-times', 'fa', 'del');
 		imgGrp.appendChild(del);
-		del.addEventListener('click', function(){
-			remove(i)
+		del.addEventListener('click', function () {
+			remove(i);
 		});
-
-		
-  		imgGrp.appendChild(img);
-
-		/*
-		var copy = document.createElement("i");
-		copy.classList.add('fa-edit');
-		copy.classList.add('fa');
-		copy.classList.add('copy');
-		imgGrp.appendChild(copy);
-		copy.addEventListener('click', function(){
-			img.select();
-  			document.execCommand("Copy");
-		});
-		*/
-
 	});
+
+	// Ensure that the typesetting is complete before considering the rendering done
+	MathJax.typesetPromise().then(() => {
+		console.log("MathJax typesetting complete");
+	}).catch((err) => {
+		console.error("MathJax typesetting failed", err);
+	});
+
 	saveHist();
 }
 
 function remove(i) {
-	hist.splice(i,1);
-	update()
+	hist.splice(i, 1);
+	update();
 }
