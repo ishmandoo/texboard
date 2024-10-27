@@ -71,13 +71,15 @@ function convertSVGtoPNG() {
 		const canvas = document.createElement('canvas');
 		const ctx = canvas.getContext('2d');
 
-		const svgString = new XMLSerializer().serializeToString(svgElement);
+		const serializer = new XMLSerializer();
+		const svgString = serializer.serializeToString(svgElement);
+		console.log(svgString);
 
 		// Create an image from the SVG
 		const img = new Image();
 		const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
 		const url = URL.createObjectURL(svgBlob);
-
+		console.log(url);
 		img.onload = function () {
 			// Set canvas dimensions
 			canvas.width = img.width;
