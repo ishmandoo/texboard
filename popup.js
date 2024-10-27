@@ -27,7 +27,6 @@ function submit() {
 	latex.value = "";
 	update();
 }
-
 function update() {
 	const imgs = document.getElementById("imgs");
 	imgs.innerHTML = "";
@@ -44,7 +43,6 @@ function update() {
 		imgGrp.appendChild(mathElement);
 
 		imgGrp.addEventListener('click', function () {
-			console.log(data)
 			document.getElementById('latex').value = data;
 		});
 
@@ -59,12 +57,49 @@ function update() {
 	// Ensure that the typesetting is complete before considering the rendering done
 	MathJax.typesetPromise().then(() => {
 		console.log("MathJax typesetting complete");
+		// Convert SVGs to PNGs
+		convertSVGtoPNG();
 	}).catch((err) => {
 		console.error("MathJax typesetting failed", err);
 	});
 
 	saveHist();
 }
+
+function convertSVGtoPNG() {
+	document.querySelectorAll('.math svg').forEach(svgElement => {
+		const canvas = document.createElement('canvas');
+		const ctx = canvas.getContext('2d');
+
+		const svgString = new XMLSerializer().serializeToString(svgElement);
+
+		// Create an image from the SVG
+		const img = new Image();
+		const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+		const url = URL.createObjectURL(svgBlob);
+
+		img.onload = function () {
+			// Set canvas dimensions
+			canvas.width = img.width;
+			canvas.height = img.height;
+			// Draw the SVG image on the canvas
+			ctx.drawImage(img, 0, 0);
+
+			// Convert the canvas to a PNG data URL
+			const pngUrl = canvas.toDataURL('image/png');
+
+			// Replace the SVG element with the PNG image
+			const pngImg = new Image();
+			pngImg.src = pngUrl;
+			svgElement.parentNode.replaceChild(pngImg, svgElement);
+
+			// Revoke the blob URL to free memory
+			URL.revokeObjectURL(url);
+		};
+		img.src = url;
+	});
+}
+
 
 function remove(i) {
 	hist.splice(i, 1);
