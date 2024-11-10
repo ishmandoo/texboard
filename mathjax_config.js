@@ -1,14 +1,15 @@
 
 MathJax = {
     tex: {
-        inlineMath: [['\\(', '\\)']]
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
     },
     loader: { load: ['output/svg'] },
     svg: {
         fontCache: 'none',
-        scale: 2
+        scale: 300
     },
     options: {
-        enableMenu: false  // Disable the right-click context menu
+        enableMenu: false
     },
 };

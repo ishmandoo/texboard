@@ -27,6 +27,7 @@ function submit() {
 	latex.value = "";
 	update();
 }
+
 function update() {
 	const imgs = document.getElementById("imgs");
 	imgs.innerHTML = "";
@@ -38,8 +39,9 @@ function update() {
 
 		const mathElement = document.createElement('div');
 		mathElement.classList.add('math');
-		// Wrap the LaTeX content in inline math delimiters
-		mathElement.innerText = `\\(${data}\\)`;
+
+		mathElement.innerText = `\\( \\huge ${data} \\)`;
+		console.log(mathElement.innerText);
 		imgGrp.appendChild(mathElement);
 
 		imgGrp.addEventListener('click', function () {
@@ -54,11 +56,11 @@ function update() {
 		});
 	});
 
-	// Ensure that the typesetting is complete before considering the rendering done
+
 	MathJax.typesetPromise().then(() => {
 		console.log("MathJax typesetting complete");
-		// Convert SVGs to PNGs
-		convertSVGtoPNG();
+
+		mathjaxToPngs();
 	}).catch((err) => {
 		console.error("MathJax typesetting failed", err);
 	});
@@ -66,39 +68,48 @@ function update() {
 	saveHist();
 }
 
-function convertSVGtoPNG() {
+function mathjaxToPngs() {
 	document.querySelectorAll('.math svg').forEach(svgElement => {
-		const canvas = document.createElement('canvas');
-		const ctx = canvas.getContext('2d');
+		svgToPng(svgElement).then((pngImg) => {
+			const mathjax_container = svgElement.parentNode.parentElement;
+			mathjax_container.innerHTML = '';
+			mathjax_container.appendChild(pngImg);
+		}).catch((error) => {
+			console.error(error);
+		});
+	});
+}
 
-		const serializer = new XMLSerializer();
-		const svgString = serializer.serializeToString(svgElement);
-		console.log(svgString);
+const scaleFactor = 2.75;
 
-		// Create an image from the SVG
-		const img = new Image();
-		const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+function svgToPng(svgElement) {
+	return new Promise((resolve, reject) => {
+		const svgData = new XMLSerializer().serializeToString(svgElement);
+		const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
 		const url = URL.createObjectURL(svgBlob);
-		console.log(url);
+
+		const img = new Image();
+		img.src = url;
 		img.onload = function () {
-			// Set canvas dimensions
-			canvas.width = img.width;
-			canvas.height = img.height;
-			// Draw the SVG image on the canvas
-			ctx.drawImage(img, 0, 0);
+			const canvas = document.createElement('canvas');
+			canvas.width = svgElement.clientWidth * scaleFactor;
+			canvas.height = svgElement.clientHeight * scaleFactor;
+			const ctx = canvas.getContext('2d');
+			ctx.scale(scaleFactor, scaleFactor);
 
-			// Convert the canvas to a PNG data URL
+			ctx.drawImage(img, 0, 0, svgElement.clientWidth, svgElement.clientHeight);
+			URL.revokeObjectURL(url);
+
 			const pngUrl = canvas.toDataURL('image/png');
-
-			// Replace the SVG element with the PNG image
 			const pngImg = new Image();
 			pngImg.src = pngUrl;
-			svgElement.parentNode.replaceChild(pngImg, svgElement);
-
-			// Revoke the blob URL to free memory
-			URL.revokeObjectURL(url);
+			resolve(pngImg);
 		};
-		img.src = url;
+
+		img.onerror = function () {
+			URL.revokeObjectURL(url);
+			reject(new Error('Failed to load SVG image.'));
+		};
 	});
 }
 

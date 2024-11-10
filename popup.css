@@ -1,5 +1,5 @@
 #latex {
-	margin-bottom: 0px;
+    margin-bottom: 0px;
     width: 100%;
 }
 
@@ -11,26 +11,27 @@
     max-width: 700px;
 }
 
-div.imgGrp:hover { 
+div.imgGrp:hover {
     background-color: #eeeeee;
 }
 
-div.imgGrp { 
-    padding-top:8px;
+div.imgGrp {
+    padding-top: 8px;
     padding-bottom: 8px;
     padding-right: 8px;
-    padding-left:8px;
+    padding-left: 8px;
     max-width: 600px;
     overflow-x: auto;
 }
 
 img {
-    max-width: 500px;
+    max-width: 250px;
+    max-height: 75px;
 }
 
 i.del {
-	font-size: 20px; 
-	float: right;
+    font-size: 20px;
+    float: right;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -38,11 +39,11 @@ i.del {
 }
 
 i.del:hover {
-	color:red;
+    color: red;
 }
 
 i.copy {
-    font-size: 20px; 
+    font-size: 20px;
     padding-right: 10px;
     float: right;
     display: flex;
@@ -52,5 +53,5 @@ i.copy {
 }
 
 i.copy:hover {
-    color:gray;
+    color: gray;
 }
